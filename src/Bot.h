@@ -19,8 +19,8 @@ public:
         int id,
         QString pollnumber,
         QString ourpick,
-        QString cookieBaseUrl,
-        QString voteBaseUrl);
+        QUrl cookieBaseUrl,
+        QUrl voteBaseUrl);
 
     ~Bot();
 
@@ -40,8 +40,8 @@ private:
     QString m_cookie;
     QString m_pollnumber;
     QString m_ourpick;
-    QString m_cookieBaseUrl;
-    QString m_voteBaseUrl;
+    QUrl m_cookieBaseUrl;
+    QUrl m_voteBaseUrl;
 };
 
 }

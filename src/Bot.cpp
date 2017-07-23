@@ -5,6 +5,7 @@
 #include <QDateTime>
 #include <QRegExp>
 #include <QTimer>
+#include <QUrlQuery>
 
 #include <functional>
 
@@ -17,8 +18,8 @@ Bot::Bot(QAtomicInt *counter,
         int id,
         QString pollnumber,
         QString ourpick,
-        QString cookieBaseUrl,
-        QString voteBaseUrl
+        QUrl cookieBaseUrl,
+        QUrl voteBaseUrl
         )
     : QObject(nullptr)
     , m_voteCounter(counter)
@@ -50,7 +51,7 @@ void Bot::getCookie()
                  QString(
                      "%1/%2?%3"
                      )
-                 .arg(m_cookieBaseUrl)
+                 .arg(QString(m_cookieBaseUrl.toEncoded()))
                  .arg(m_pollnumber)
                  .arg(msecSinceEpoch)
                  )
@@ -63,13 +64,13 @@ void Bot::getCookie()
                          "polldaddy.com"
                          );
     request.setRawHeader("Referer",
-                         QUrl::fromUserInput(m_voteBaseUrl).toEncoded()
+                         m_voteBaseUrl.toEncoded()
                          );
     request.setRawHeader("User-Agent",
                          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36"
                          );
 
-    qDebug() << "Requesting cookie .. " << url.toEncoded();
+    qDebug() << "[REQUESTING COOKIE] " << url.toEncoded() << endl;
 
     QNetworkReply* reply {
         m_net->get(request)
@@ -87,33 +88,50 @@ void Bot::getCookie()
 
 void Bot::vote()
 {
-    QUrl url(QUrl::fromUserInput(
-                 QString(
-                     "http://polls.polldaddy.com/vote-js.php"
-                     "?p=%1"
-                     "&b=0"
-                     "&a=%2,"
-                     "&o="
-                     "&va=16"
-                     "&cookie=0"
-                     "&n=%3"
-                     "&url=%4"
-                     )
-                 .arg(m_pollnumber)
-                 .arg(m_ourpick)
-                 .arg(m_cookie)
-                 .arg(m_voteBaseUrl)
-                 )
-             );
+    QUrlQuery query;
+    query.addQueryItem("p",
+                       m_pollnumber
+                       );
+
+    query.addQueryItem("b",
+                       "0"
+                       );
+
+    query.addQueryItem("a",
+                       m_ourpick
+                       );
+
+    query.addQueryItem("o",
+                       ""
+                       );
+
+    query.addQueryItem("va",
+                       "16"
+                       );
+
+    query.addQueryItem("cookie",
+                       "0"
+                       );
+
+    query.addQueryItem("n",
+                       m_cookie
+                       );
+
+    query.addQueryItem("url",
+                       m_voteBaseUrl.toEncoded()
+                       );
+
+    QUrl url("http://polls.polldaddy.com/vote-js.php");
+    url.setQuery(query);
 
     QNetworkRequest request(
                 url
                 );
 
-    qDebug() << "Voting ... " << url.toEncoded();
+    qDebug() << "[VOTING] " << url.toEncoded() << endl;
 
     request.setRawHeader("Referer",
-                         QUrl::fromUserInput(m_voteBaseUrl).toEncoded()
+                         m_voteBaseUrl.toEncoded()
                          );
     request.setRawHeader("User-Agent",
                          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36"
@@ -152,7 +170,7 @@ void Bot::onReplyGetCookie()
         m_cookie = rx.cap(1);
     }
 
-    qDebug() << "[COOKIE] " << m_cookie;
+    qDebug() << "[COOKIE] " << m_cookie << endl;
 
     if (m_cookie == lastCookie) {
         qDebug() << "Cookie has not changed ... delaying";
@@ -174,9 +192,10 @@ void Bot::onReplyVote()
     };
     if (reply == nullptr) return;
 
-    qDebug() << reply->readAll();
-    qDebug() << "[" << m_id << "] " << ++(*m_voteCounter) << endl;
+    qDebug() << "[REPLY] " << reply->readAll() << endl;
     reply->deleteLater();
+
+    qDebug() << "[" << m_id << "] " << ++(*m_voteCounter) << endl;
 
     getCookie();
 }

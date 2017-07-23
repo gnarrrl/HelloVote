@@ -73,6 +73,16 @@ int main(int argc, char *argv[])
                  )
     };
 
+    QUrl cookieBaseUrl(QUrl::fromUserInput(
+                           cp.value(optCookieBase)
+                           )
+                       );
+
+    QUrl voteBaseUrl(QUrl::fromUserInput(
+                         cp.value(optVoteBase)
+                         )
+                     );
+
     // start and run specified number of bots until
     // the user aborts the program manually
     for (int n = 0; n < numThreads; n++) {
@@ -86,8 +96,8 @@ int main(int argc, char *argv[])
                         n,
                         cp.value(optPoll),
                         cp.value(optChoice),
-                        cp.value(optCookieBase),
-                        cp.value(optVoteBase)
+                        cookieBaseUrl,
+                        voteBaseUrl
                     )
         };
 
