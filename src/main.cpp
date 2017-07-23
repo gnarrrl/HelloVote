@@ -6,6 +6,7 @@
 #include <QUrl>
 #include <QCommandLineParser>
 #include <QCommandLineOption>
+#include <QThread>
 
 #include "BotThread.h"
 
@@ -56,20 +57,34 @@ int main(int argc, char *argv[])
 
     // start and run specified number of bots until
     // the user aborts the program manually
-    using Bot = HelloInternet::BotThread;
-    QVector<Bot*> bots;
-    bots.reserve(numThreads);
-
     for (int n = 0; n < numThreads; n++) {
-        bots.append(new Bot(
-                        &a,
-                        &out,
-                        &voteCount,
-                        votingUrl,
-                        n
-                        )
-                    );
-        bots.last()->start();
+        QThread* t {
+            new QThread(&a)
+        };
+
+        HelloInternet::Bot* b {
+            new HelloInternet::Bot(
+                    &out,
+                    &voteCount,
+                    votingUrl,
+                    n
+                    )
+        };
+
+        b->connect(t,
+                   &QThread::finished,
+                   b,
+                   &QObject::deleteLater
+                   );
+
+        b->connect(t,
+                   &QThread::started,
+                   b,
+                   &HelloInternet::Bot::run
+                   );
+
+        b->moveToThread(t);
+        t->start();
     }
 
     return a.exec();
