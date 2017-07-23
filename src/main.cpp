@@ -8,7 +8,7 @@
 #include <QCommandLineOption>
 #include <QThread>
 
-#include "BotThread.h"
+#include "Bot.h"
 
 int main(int argc, char *argv[])
 {
