@@ -1,5 +1,4 @@
 #include <QCoreApplication>
-#include <QTextStream>
 #include <QAtomicInt>
 #include <memory>
 #include <QVector>
@@ -14,37 +13,56 @@ int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
 
-    QTextStream out(stdout);
     QAtomicInt voteCount(0);
-//    QUrl votingUrl(
-//                "http://polls.polldaddy.com/vote-js.php?p=9793268&b=0&a=44802685,&o=&va=16&cookie=0&n=edad4169d3|543&url=http%3A//www.radiotimes.com/news/2017-07-21/radio-times-radio-and-podcast-champion-round-4-5]"
-//                );
 
     QCommandLineParser cp;
-    QCommandLineOption optUrl("url",
-                              "url",
-                              "voting url"
-                              );
-    QCommandLineOption optBots("bots",
-                               "bots",
-                               "number of bots (threads) to run"
-                               );
+    QCommandLineOption optPoll(
+                "poll",
+                "poll",
+                "poll number"
+                );
 
-    cp.addOption(optUrl);
+    QCommandLineOption optChoice(
+                "choice",
+                "choice",
+                "our chosen winner"
+                );
+
+    QCommandLineOption optBots(
+                "bots",
+                "bots",
+                "number of bots (threads) to run"
+                );
+
+    QCommandLineOption optCookieBase(
+                "cookieBase",
+                "cookieBase",
+                "cookie base url"
+                );
+
+    QCommandLineOption optVoteBase(
+                "voteBase",
+                "voteBase",
+                "vote base url"
+                );
+
+    cp.addOption(optPoll);
+    cp.addOption(optChoice);
     cp.addOption(optBots);
+    cp.addOption(optCookieBase);
+    cp.addOption(optVoteBase);
 
     cp.process(a);
 
     // both arguments are required
-    if (cp.isSet(optUrl) == false ||
-        cp.isSet(optBots) == false)
+    if (cp.isSet(optPoll) == false ||
+        cp.isSet(optChoice) == false ||
+        cp.isSet(optBots) == false ||
+        cp.isSet(optCookieBase) == false ||
+        cp.isSet(optVoteBase) == false)
     {
         cp.showHelp(0);
     }
-
-    QUrl votingUrl(
-                cp.value(optUrl)
-                );
 
     // clamp number of threads to 1-100
     const int numThreads {
@@ -64,10 +82,12 @@ int main(int argc, char *argv[])
 
         HelloInternet::Bot* b {
             new HelloInternet::Bot(
-                    &out,
-                    &voteCount,
-                    votingUrl,
-                    n
+                        &voteCount,
+                        n,
+                        cp.value(optPoll),
+                        cp.value(optChoice),
+                        cp.value(optCookieBase),
+                        cp.value(optVoteBase)
                     )
         };
 

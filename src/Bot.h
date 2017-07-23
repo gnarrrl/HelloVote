@@ -15,10 +15,12 @@ class Bot : public QObject
 {
     Q_OBJECT
 public:
-    Bot(QTextStream* stream,
-        QAtomicInt* counter,
-        const QUrl& url,
-        int id);
+    Bot(QAtomicInt* counter,
+        int id,
+        QString pollnumber,
+        QString ourpick,
+        QString cookieBaseUrl,
+        QString voteBaseUrl);
 
     ~Bot();
 
@@ -26,15 +28,20 @@ public slots:
     void run();
 
 protected slots:
-    void sendRequest();
-    void onReply();
+    void vote();
+    void getCookie();
+    void onReplyVote();
+    void onReplyGetCookie();
 
 private:
     QAtomicInt* m_voteCounter {};
-    QTextStream* m_stdout {};
-    QUrl m_url;
     int m_id {};
     QNetworkAccessManager* m_net {};
+    QString m_cookie;
+    QString m_pollnumber;
+    QString m_ourpick;
+    QString m_cookieBaseUrl;
+    QString m_voteBaseUrl;
 };
 
 }
