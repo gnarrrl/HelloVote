@@ -37,6 +37,19 @@ Bot::~Bot()
 
 void Bot::run()
 {
+    Q_ASSERT(m_net == nullptr);
+    if (m_net) return;
+
+    const qint64 key {
+        QDateTime::currentMSecsSinceEpoch()
+    };
+    const uint seed {
+        qHash(key, m_id)
+    };
+    qsrand(seed);
+
+    //qDebug() << "[KEY / SEED] " << key << " / " << seed << endl;
+
     m_net = new QNetworkAccessManager(this);
     getCookie();
 }
@@ -98,7 +111,7 @@ void Bot::vote()
                        );
 
     query.addQueryItem("a",
-                       m_ourpick
+                       m_ourpick + ","
                        );
 
     query.addQueryItem("o",
@@ -197,9 +210,16 @@ void Bot::onReplyVote()
 
     qDebug() << "[" << m_id << "] " << ++(*m_voteCounter) << endl;
 
-    // delay next vote for 2500 ms to avoid silent vote limiting
+    // delay next vote to avoid silent vote limiting
+    // delay between 3 and 5 seconds
+    const int delay {
+        3000 + static_cast<int>(((qreal)qrand() / (qreal)RAND_MAX) * 2000)
+    };
+
+    qDebug() << "[DELAY] " << delay << "ms" << endl;
+
     QTimer::singleShot(
-                2500,
+                delay,
                 this,
                 &Bot::getCookie
                 );
