@@ -40,13 +40,13 @@ void Bot::run()
     Q_ASSERT(m_net == nullptr);
     if (m_net) return;
 
-    const qint64 key {
-        QDateTime::currentMSecsSinceEpoch()
-    };
-    const uint seed {
-        qHash(key, m_id)
-    };
-    qsrand(seed);
+//    const qint64 key {
+//        QDateTime::currentMSecsSinceEpoch()
+//    };
+//    const uint seed {
+//        qHash(key, m_id)
+//    };
+//    qsrand(seed);
 
     //qDebug() << "[KEY / SEED] " << key << " / " << seed << endl;
 
@@ -212,14 +212,20 @@ void Bot::onReplyVote()
 
     // delay next vote to avoid silent vote limiting
     // delay between 3 and 5 seconds
-    const int delay {
-        3000 + static_cast<int>(((qreal)qrand() / (qreal)RAND_MAX) * 2000)
-    };
+//    const int delay {
+//        3000 + static_cast<int>(((qreal)qrand() / (qreal)RAND_MAX) * 2000)
+//    };
 
-    qDebug() << "[DELAY] " << delay << "ms" << endl;
+//    qDebug() << "[DELAY] " << delay << "ms" << endl;
+
+    // Research by other users has shown that voting more than 25 times in 2 minutes
+    // is the threshold for being kicked back
+    // -> wait for 5 seconds, voting (without counting network latency of 2 requests / responses)
+    // should amount to <= 24 votes per 2 minutes
+    qDebug() << "Delaying for 5 seconds..." << endl;
 
     QTimer::singleShot(
-                delay,
+                5000,
                 this,
                 &Bot::getCookie
                 );
