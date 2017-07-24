@@ -197,6 +197,11 @@ void Bot::onReplyVote()
 
     qDebug() << "[" << m_id << "] " << ++(*m_voteCounter) << endl;
 
-    getCookie();
+    // delay next vote for 2500 ms to avoid silent vote limiting
+    QTimer::singleShot(
+                2500,
+                this,
+                &Bot::getCookie
+                );
 }
 }

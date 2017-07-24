@@ -57,20 +57,22 @@ int main(int argc, char *argv[])
     // both arguments are required
     if (cp.isSet(optPoll) == false ||
         cp.isSet(optChoice) == false ||
-        cp.isSet(optBots) == false ||
+        //cp.isSet(optBots) == false ||
         cp.isSet(optCookieBase) == false ||
         cp.isSet(optVoteBase) == false)
     {
         cp.showHelp(0);
     }
 
-    // clamp number of threads to 1-100
     const int numThreads {
-        std::max(1,
-                 std::min(100,
-                          cp.value(optBots).toInt()
-                          )
-                 )
+        1 // more than one thread seems not feasible due to silent voting limit
+
+// clamp number of threads to 1-100
+//        std::max(1,
+//                 std::min(100,
+//                          cp.value(optBots).toInt()
+//                          )
+//                 )
     };
 
     QUrl cookieBaseUrl(QUrl::fromUserInput(
