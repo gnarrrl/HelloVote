@@ -42,6 +42,9 @@ private:
     QString m_ourpick;
     QUrl m_cookieBaseUrl;
     QUrl m_voteBaseUrl;
+
+    static const int BurstSize { 20 };
+    int m_todo { BurstSize };
 };
 
 }

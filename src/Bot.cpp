@@ -205,29 +205,58 @@ void Bot::onReplyVote()
     };
     if (reply == nullptr) return;
 
-    qDebug() << "[REPLY] " << reply->readAll() << endl;
+    QByteArray content(reply->readAll());
+    qDebug() << "[REPLY] " << content << endl;
     reply->deleteLater();
 
-    qDebug() << "[" << m_id << "] " << ++(*m_voteCounter) << endl;
+    // quick & dirty way of testing for result. actually parsing the json would be correct.
+    if (content.contains(R"("result")")) {
+        if (content.contains(R"("registered")")) {
+            qDebug() << "[VOTE ACCEPTED] Count:" << ++(*m_voteCounter) << endl;
 
-    // delay next vote to avoid silent vote limiting
-    // delay between 3 and 5 seconds
-//    const int delay {
-//        3000 + static_cast<int>(((qreal)qrand() / (qreal)RAND_MAX) * 2000)
-//    };
+            if (--m_todo >= 0) {
+                QTimer::singleShot(
+                            1000,
+                            this,
+                            &Bot::getCookie
+                            );
+            } else {
+                qDebug() << "[VOTE BURST DONE] Going to sleep for 2 minutes ..." << endl;
 
-//    qDebug() << "[DELAY] " << delay << "ms" << endl;
+                m_todo = BurstSize;
 
-    // Research by other users has shown that voting more than 25 times in 2 minutes
-    // is the threshold for being kicked back
-    // -> wait for 5 seconds, voting (without counting network latency of 2 requests / responses)
-    // should amount to <= 24 votes per 2 minutes
-    qDebug() << "Delaying for 5 seconds..." << endl;
+                QTimer::singleShot(
+                            120000,
+                            this,
+                            &Bot::getCookie
+                            );
+            }
+        } else if (content.contains(R"("already-registered")")) {
+            qDebug() << "[VOTE REJECTED] Going to sleep for 2 minutes ..." << endl;
 
-    QTimer::singleShot(
-                5000,
-                this,
-                &Bot::getCookie
-                );
+            QTimer::singleShot(
+                        120000,
+                        this,
+                        &Bot::getCookie
+                        );
+        } else {
+            qDebug() << "[VOTE INCONCLUSIVE] Trying again ..." << endl;
+
+            QTimer::singleShot(
+                        1000,
+                        this,
+                        &Bot::getCookie
+                        );
+        }
+    } else {
+        qDebug() << "[SHADOWBANNED] Going to sleep for 2 minutes ..." << endl;
+
+        QTimer::singleShot(
+                    120000,
+                    this,
+                    &Bot::getCookie
+                    );
+    }
 }
+
 }
